@@ -1,4 +1,3 @@
-<!-- resources/views/dashboard.blade.php -->
 @extends('admin.layout')
 @section('content')
     <h2 class="text-3xl font-bold text-center mb-6 border-b-4 pb-4 bg-gray-800 text-white rounded-lg">Tool Status</h2>
@@ -11,9 +10,53 @@
         <strong>Logged in as:</strong> {{ auth()->user()->name }} (ID: {{ auth()->user()->id }})
     </div>
 
+    <!-- Filters Section -->
+    <div class="w-full mb-6 flex flex-wrap gap-4 justify-center p-4 bg-gray-200 rounded-lg shadow">
+        <div class="relative w-full sm:w-auto">
+            <label for="toolFilter" class="block text-sm font-medium text-gray-700">Tool</label>
+            <select id="toolFilter" class="p-4 border rounded-lg bg-white shadow text-black appearance-none w-full sm:w-auto" onchange="filterTools()">
+                <option value="">All Tools</option>
+                @foreach($tools as $tool)
+                    <option value="{{ $tool->name }}">{{ $tool->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="relative w-full sm:w-auto">
+            <label for="employeeFilter" class="block text-sm font-medium text-gray-700">Employee</label>
+            <select id="employeeFilter" class="p-4 border rounded-lg bg-white shadow text-black appearance-none w-full sm:w-auto" onchange="filterTools()">
+                <option value="">All Employees</option>
+                @foreach($employees as $employee)
+                    <option value="{{ $employee->name }}">{{ $employee->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="relative w-full sm:w-auto">
+            <label for="locationFilter" class="block text-sm font-medium text-gray-700">Location</label>
+            <select id="locationFilter" class="p-4 border rounded-lg bg-white shadow text-black appearance-none w-full sm:w-auto" onchange="filterTools()">
+                <option value="">All Locations</option>
+                @foreach($locations as $location)
+                    <option value="{{ $location->name }}">{{ $location->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="relative w-full sm:w-auto">
+            <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Category</label>
+            <select id="categoryFilter" class="p-4 border rounded-lg bg-white shadow text-black appearance-none w-full sm:w-auto" onchange="filterTools()">
+                <option value="">All Categories</option>
+                @foreach($tools->unique('category') as $tool)
+                    <option value="{{ $tool->category }}">{{ $tool->category }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
     <div class="relative overflow-x-auto w-full">
         <div class="w-full min-w-full">
-            <table class="table-auto w-full border-collapse border border-gray-300 shadow-lg text-sm sm:text-base">
+            <table class="table-auto w-full border-collapse border border-gray-300 shadow-lg text-sm sm:text-base" id="toolTable">
                 <thead class="sticky top-0 bg-gray-800 text-white font-bold">
                     <tr>
                         <th class="border px-4 sm:px-6 py-3 w-32">Action</th>
@@ -26,17 +69,17 @@
                 </thead>
                 <tbody>
                     @foreach($tools as $tool)
-                        <tr class="{{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }} hover:bg-gray-200">
+                        <tr class="tool-entry {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }} hover:bg-gray-200">
                             <td class="border px-4 sm:px-6 py-3 text-center">
                                 @if(auth()->user() && auth()->user()->is_admin)
                                     <button onclick="openModal({{ $tool->id }})" class="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto">Checkout</button>
                                 @endif
                             </td>
-                            <td class="border px-4 sm:px-6 py-3">{{ $tool->name }}</td>
+                            <td class="border px-4 sm:px-6 py-3 tool-name">{{ $tool->name }}</td>
                             <td class="border px-4 sm:px-6 py-3">{{ $tool->serial_number }}</td>
-                            <td class="border px-4 sm:px-6 py-3">{{ $tool->category }}</td>
-                            <td class="border px-4 sm:px-6 py-3">{{ $tool->location->name ?? 'Unassigned' }}</td>
-                            <td class="border px-4 sm:px-6 py-3">{{ $tool->employee->name ?? 'Unassigned' }}</td>
+                            <td class="border px-4 sm:px-6 py-3 category">{{ $tool->category }}</td>
+                            <td class="border px-4 sm:px-6 py-3 location">{{ $tool->location->name ?? 'Unassigned' }}</td>
+                            <td class="border px-4 sm:px-6 py-3 employee">{{ $tool->employee->name ?? 'Unassigned' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -44,6 +87,29 @@
         </div>
     </div>
 
+    <!-- JavaScript Filtering Logic -->
+    <script>
+        function filterTools() {
+            let toolFilter = document.getElementById("toolFilter").value.toLowerCase();
+            let employeeFilter = document.getElementById("employeeFilter").value.toLowerCase();
+            let locationFilter = document.getElementById("locationFilter").value.toLowerCase();
+            let categoryFilter = document.getElementById("categoryFilter").value.toLowerCase();
+
+            document.querySelectorAll(".tool-entry").forEach(row => {
+                let tool = row.querySelector(".tool-name").innerText.toLowerCase();
+                let employee = row.querySelector(".employee").innerText.toLowerCase();
+                let location = row.querySelector(".location").innerText.toLowerCase();
+                let category = row.querySelector(".category").innerText.toLowerCase();
+
+                let matchesTool = !toolFilter || tool.includes(toolFilter);
+                let matchesEmployee = !employeeFilter || employee.includes(employeeFilter);
+                let matchesLocation = !locationFilter || location.includes(locationFilter);
+                let matchesCategory = !categoryFilter || category.includes(categoryFilter);
+
+                row.style.display = matchesTool && matchesEmployee && matchesLocation && matchesCategory ? "table-row" : "none";
+            });
+        }
+    </script>
     <!-- Checkout Modal -->
     @if(auth()->user() && auth()->user()->is_admin)
         <div id="checkoutModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
