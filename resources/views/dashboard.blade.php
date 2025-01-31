@@ -174,6 +174,49 @@
 
     <!-- Modal JavaScript -->
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("checkoutForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent page reload
+
+        let form = event.target;
+        let formData = new FormData(form);
+        let actionUrl = form.action;
+
+        fetch(actionUrl, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                "Accept": "application/json" // Ensure Laravel returns JSON
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok"); // Handle non-200 responses
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                closeModal(); // Close modal
+    
+            } else {
+                alert("❌ Error: " + (data.message || "Something went wrong."));
+            }
+        })
+        .catch(error => console.error("Checkout error:", error));
+    });
+});
+
+
+function updateToolTable() {
+    fetch("/tools") // Adjust the route if needed
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById("toolTable").innerHTML = html; // Update tools dynamically
+    })
+    .catch(error => console.error("Error updating table:", error));
+}
     function openModal(toolId) {
         let form = document.getElementById('checkoutForm');
         form.action = '/checkout/' + toolId;
@@ -226,4 +269,6 @@
         .catch(error => console.error('Error:', error));
     }
     </script>
+
+
 @endsection
