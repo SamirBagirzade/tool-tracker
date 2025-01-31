@@ -63,10 +63,10 @@
             <tbody>
                 @foreach($logs as $index => $log)
                     <tr class="log-entry {{ $index % 2 == 0 ? 'bg-gray-100' : 'bg-gray-50' }} hover:bg-gray-200">
-                        <td class="border px-4 sm:px-6 py-3">{{ $log->tool->name }}</td>
-                        <td class="border px-4 sm:px-6 py-3">{{ $log->tool->serial_number }}</td>
-                        <td class="border px-4 sm:px-6 py-3">{{ $log->location->name }}</td>
-                        <td class="border px-4 sm:px-6 py-3">{{ $log->employee->name }}</td>
+                        <td class="border px-4 sm:px-6 py-3 tool-name">{{ $log->tool->name }}</td>
+                        <td class="border px-4 sm:px-6 py-3 serial-number">{{ $log->tool->serial_number }}</td>
+                        <td class="border px-4 sm:px-6 py-3 location">{{ $log->location->name }}</td>
+                        <td class="border px-4 sm:px-6 py-3 employee">{{ $log->employee->name }}</td>
                         <td class="border px-4 sm:px-6 py-3 log-date">{{ \Carbon\Carbon::parse($log->checked_out_at)->format('Y-m-d H:i') }}</td>
                     </tr>
                 @endforeach
@@ -82,24 +82,38 @@
 
     <script>
         function filterLogs() {
-            let toolFilter = document.getElementById("toolFilter").value.toLowerCase();
+
+            let toolFilter2 = document.getElementById("toolFilter").value.toLowerCase();
+            let toolFilter = toolFilter2.split(',')[0];
+            var number = "";
+            if(toolFilter2){
+            let partAfterComma = toolFilter2.split(',')[1].trim(); // Extracts "#1231" and trims whitespace
+             number = partAfterComma.replace('#', ''); // Removes the "#" symbol to get "1231"
+            }
+            else{
+             number = "";
+            }
+
             let employeeFilter = document.getElementById("employeeFilter").value.toLowerCase();
             let locationFilter = document.getElementById("locationFilter").value.toLowerCase();
             let startDate = document.getElementById("startDate").value;
             let endDate = document.getElementById("endDate").value;
-            
+
+
             document.querySelectorAll(".log-entry").forEach(row => {
-                let tool = row.children[0].innerText.toLowerCase();
-                let employee = row.children[3].innerText.toLowerCase();
-                let location = row.children[2].innerText.toLowerCase();
-                let date = row.children[4].innerText;
-                
-                let matchesTool = !toolFilter || tool.includes(toolFilter);
-                let matchesEmployee = !employeeFilter || employee.includes(employeeFilter);
-                let matchesLocation = !locationFilter || location.includes(locationFilter);
-                let matchesDate = (!startDate || date >= startDate) && (!endDate || date <= endDate);
-                
-                row.style.display = matchesTool && matchesEmployee && matchesLocation && matchesDate ? "table-row" : "none";
+        
+            let tool_name = row.querySelector(".tool-name").innerText.toLowerCase();
+            let serial_number = row.querySelector(".serial-number").innerText.toLowerCase();
+            let employee = row.querySelector(".employee").innerText.toLowerCase();
+            let location = row.querySelector(".location").innerText.toLowerCase();
+            let date = row.querySelector(".log-date").innerText.toLowerCase();
+            
+            let matchesTool = !toolFilter || tool_name.includes(toolFilter);
+            let matchesSerial = !number || serial_number.includes(number)
+            let matchesEmployee = !employeeFilter || employee.includes(employeeFilter);
+            let matchesLocation = !locationFilter || location.includes(locationFilter);
+            let matchesDate = (!startDate || date >= startDate) && (!endDate || date <= endDate);
+            row.style.display = matchesSerial&&matchesTool&&matchesEmployee&&matchesDate&& matchesLocation  ? "table-row" : "none";
             });
         }
     </script>

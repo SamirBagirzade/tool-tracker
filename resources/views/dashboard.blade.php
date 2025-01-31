@@ -95,7 +95,7 @@
             let locationFilter = document.getElementById("locationFilter").value.toLowerCase();
             let categoryFilter = document.getElementById("categoryFilter").value.toLowerCase();
 
-            document.querySelectorAll(".tool-entry").forEach(row => {
+                document.querySelectorAll(".tool-entry").forEach(row => {
                 let tool = row.querySelector(".tool-name").innerText.toLowerCase();
                 let employee = row.querySelector(".employee").innerText.toLowerCase();
                 let location = row.querySelector(".location").innerText.toLowerCase();
