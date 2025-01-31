@@ -17,7 +17,7 @@
             <select id="toolFilter" class="p-4 border rounded-lg bg-white shadow text-black appearance-none w-full sm:w-auto" onchange="filterTools()">
                 <option value="">All Tools</option>
                 @foreach($tools as $tool)
-                    <option value="{{ $tool->name }}">{{ $tool->name }}</option>
+                <option value="{{ $tool->name }}, #{{ $tool->serial_number }}">{{ $tool->name }}, #{{ $tool->serial_number }}</option>
                 @endforeach
             </select>
         </div>
@@ -76,7 +76,7 @@
                                 @endif
                             </td>
                             <td class="border px-4 sm:px-6 py-3 tool-name">{{ $tool->name }}</td>
-                            <td class="border px-4 sm:px-6 py-3">{{ $tool->serial_number }}</td>
+                            <td class="border px-4 sm:px-6 py-3 serial-number">{{ $tool->serial_number }}</td>
                             <td class="border px-4 sm:px-6 py-3 category">{{ $tool->category }}</td>
                             <td class="border px-4 sm:px-6 py-3 location">{{ $tool->location->name ?? 'Unassigned' }}</td>
                             <td class="border px-4 sm:px-6 py-3 employee">{{ $tool->employee->name ?? 'Unassigned' }}</td>
@@ -90,7 +90,16 @@
     <!-- JavaScript Filtering Logic -->
     <script>
         function filterTools() {
-            let toolFilter = document.getElementById("toolFilter").value.toLowerCase();
+            let toolFilter2 = document.getElementById("toolFilter").value.toLowerCase();
+            let toolFilter = toolFilter2.split(',')[0];
+            var number = "";
+            if(toolFilter2){
+            let partAfterComma = toolFilter2.split(',')[1].trim(); // Extracts "#1231" and trims whitespace
+             number = partAfterComma.replace('#', ''); // Removes the "#" symbol to get "1231"
+            }
+            else{
+             number = "";
+            }
             let employeeFilter = document.getElementById("employeeFilter").value.toLowerCase();
             let locationFilter = document.getElementById("locationFilter").value.toLowerCase();
             let categoryFilter = document.getElementById("categoryFilter").value.toLowerCase();
@@ -100,13 +109,15 @@
                 let employee = row.querySelector(".employee").innerText.toLowerCase();
                 let location = row.querySelector(".location").innerText.toLowerCase();
                 let category = row.querySelector(".category").innerText.toLowerCase();
+                let serial_number = row.querySelector(".serial-number").innerText.toLowerCase();
 
                 let matchesTool = !toolFilter || tool.includes(toolFilter);
+                let matchesSerial = !number || serial_number.includes(number)
                 let matchesEmployee = !employeeFilter || employee.includes(employeeFilter);
                 let matchesLocation = !locationFilter || location.includes(locationFilter);
                 let matchesCategory = !categoryFilter || category.includes(categoryFilter);
 
-                row.style.display = matchesTool && matchesEmployee && matchesLocation && matchesCategory ? "table-row" : "none";
+                row.style.display = matchesSerial&&matchesTool && matchesEmployee && matchesLocation && matchesCategory ? "table-row" : "none";
             });
         }
     </script>
