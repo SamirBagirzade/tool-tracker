@@ -69,7 +69,8 @@
                 </thead>
                 <tbody>
                     @foreach($tools as $tool)
-                        <tr class="tool-entry {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }} hover:bg-gray-200">
+                    <tr class="tool-entry {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }} hover:bg-gray-200" data-tool-id="{{ $tool->id }}">
+
                             <td class="border px-4 sm:px-6 py-3 text-center">
                                 @if(auth()->user() && auth()->user()->is_admin)
                                     <button onclick="openModal({{ $tool->id }})" class="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto">Checkout</button>
@@ -174,7 +175,7 @@
 
     <!-- Modal JavaScript -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("checkoutForm").addEventListener("submit", function (event) {
         event.preventDefault(); // Prevent page reload
 
@@ -198,8 +199,8 @@
         })
         .then(data => {
             if (data.success) {
+                updateToolRow(data.tool); // Update the tool row in the table
                 closeModal(); // Close modal
-    
             } else {
                 alert("❌ Error: " + (data.message || "Something went wrong."));
             }
@@ -208,15 +209,24 @@
     });
 });
 
+// Function to update the tool row dynamically
+function updateToolRow(tool) {
+    let row = document.querySelector(`tr[data-tool-id="${tool.id}"]`);
+    
+    if (row) {
+        console.log("Updating row for tool ID:", tool.id); // Debugging log
+        row.querySelector(".employee").innerText = tool.employee_name || "Unassigned";
+        row.querySelector(".location").innerText = tool.location_name || "Unassigned";
 
-function updateToolTable() {
-    fetch("/tools") // Adjust the route if needed
-    .then(response => response.text())
-    .then(html => {
-        document.getElementById("toolTable").innerHTML = html; // Update tools dynamically
-    })
-    .catch(error => console.error("Error updating table:", error));
+        // Add an animation effect to highlight the update
+        row.style.backgroundColor = "#bbf7d0"; // Equivalent to bg-green-200
+        setTimeout(() => row.style.backgroundColor = "", 1000);
+    } else {
+        console.error("❌ Tool row not found for ID:", tool.id);
+    }
 }
+
+
     function openModal(toolId) {
         let form = document.getElementById('checkoutForm');
         form.action = '/checkout/' + toolId;

@@ -26,8 +26,6 @@ class MainController extends Controller
             'employee_id' => 'required|exists:employees,id',
         ]);
     
-        Log::info('Checkout Request by:', ['user' => auth()->user()]);
-    
         if (!auth()->check()) {
             return response()->json(['success' => false, 'message' => 'Authentication required.'], 401);
         }
@@ -43,18 +41,24 @@ class MainController extends Controller
             'tool_id' => $tool->id,
             'location_id' => $request->location_id,
             'employee_id' => $request->employee_id,
-            'admin_id' => auth()->id() ?? null,
+            'admin_id' => auth()->id(),
             'checked_out_at' => now(),
         ]);
     
-        // **Force JSON Response for AJAX Requests**
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Tool checked out successfully!']);
-        }
-    
-        return redirect()->route('dashboard')->with('success', 'Tool checked out successfully!');
+        // Return JSON response with updated tool data
+        return response()->json([
+            'success' => true,
+            'message' => 'Tool checked out successfully!',
+            'tool' => [
+                'id' => $tool->id,
+                'name' => $tool->name,
+                'serial_number' => $tool->serial_number,
+                'category' => $tool->category,
+                'location_name' => optional($tool->location)->name ?? 'Unassigned',
+                'employee_name' => optional($tool->employee)->name ?? 'Unassigned',
+            ],
+        ]);
     }
-    
     
     // public function checkout(Request $request, Tool $tool)
     // {
